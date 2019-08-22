@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cd $(git rev-parse --show-toplevel)
+
+bundle install
+gem build logstash-output-prometheus.gemspec
+
+echo "Successfully built! Install in your logstash by running..."
+echo "logstash-plugin install $PWD/logstash-output-prometheus-0.1.0.gem from your logstash directory"
