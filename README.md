@@ -45,7 +45,7 @@ filter {
 }
 output {
 	prometheus {
-		port => 12345
+		port => 9640
 		timer => {
 			histogramtest => {
 				description => "This is my histogram"
@@ -71,7 +71,7 @@ output {
 logstash -e 'input { stdin { } } 
 output {
 	prometheus {
-		port => 12345
+		port => 9640
 		increment => {
 			mycounter => {
 				description => "This is my test counter"
@@ -84,7 +84,7 @@ output {
 	}
 
 	prometheus {
-		port => 12345
+		port => 9640
 		increment => {
 			totaleventscustom => {
 				description => "This is my second test counter"

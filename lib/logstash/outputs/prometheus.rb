@@ -12,7 +12,7 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
   config_name "prometheus"
   concurrency :single
 
-  config :port, :validate => :number, :default => 12345
+  config :port, :validate => :number, :default => 9640
 
   # These three create counter/gauge metrics.
   # By default, when increment is used a counter is assumed
