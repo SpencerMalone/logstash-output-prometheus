@@ -4,7 +4,8 @@ PATH
     logstash-output-prometheus (0.1.0)
       logstash-codec-plain
       logstash-core-plugin-api (~> 2.0)
-      prometheus_exporter
+      prometheus-client (= 0.10.0.pre.alpha.2)
+      rack
 
 GEM
   remote: https://rubygems.org/
@@ -82,7 +83,7 @@ GEM
     numerizer (0.1.1)
     openssl_pkcs8_pure (0.0.0.2)
     polyglot (0.3.5)
-    prometheus_exporter (0.4.13)
+    prometheus-client (0.10.0.pre.alpha.2)
     pry (0.10.4-java)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -132,7 +133,8 @@ PLATFORMS
 DEPENDENCIES
   logstash-devutils
   logstash-output-prometheus!
-  prometheus_exporter
+  prometheus-client (= 0.10.0.pre.alpha.2)
+  rack
 
 BUNDLED WITH
    2.0.1

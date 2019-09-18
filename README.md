@@ -45,7 +45,6 @@ filter {
 }
 output {
 	prometheus {
-		port => 9640
 		timer => {
 			histogramtest => {
 				description => "This is my histogram"
@@ -56,11 +55,15 @@ output {
 					mylabel => "testlabel" 
 				}
 			}
+		}
+	}
+	prometheus {
+		port => 9641 # You can run multiple ports if you want different outputs scraped by different prom instances.
+		timer => {
 			summarytest => {
 				description => "This is my summary"
 				value => "%{[timer]}"
 				type => "summary"
-				quantiles => [0.5, 0.9, 0.99]
 			}
 		}
 	}
@@ -71,7 +74,6 @@ output {
 logstash -e 'input { stdin { } } 
 output {
 	prometheus {
-		port => 9640
 		increment => {
 			mycounter => {
 				description => "This is my test counter"
@@ -84,7 +86,6 @@ output {
 	}
 
 	prometheus {
-		port => 9640
 		increment => {
 			totaleventscustom => {
 				description => "This is my second test counter"
@@ -93,3 +94,7 @@ output {
 	}
 }'
 ```
+
+## Things to keep in mind
+
+As outlined in 

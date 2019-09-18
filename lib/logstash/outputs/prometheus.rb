@@ -1,16 +1,14 @@
 # encoding: utf-8
 require "logstash/outputs/base"
-
-require 'prometheus_exporter'
-require 'prometheus_exporter/server'
-
-# client allows instrumentation to send info to server
-require 'prometheus_exporter/client'
+require 'rack'
+require 'prometheus/middleware/exporter'
+require 'prometheus/middleware/collector'
+require 'prometheus/client'
 
 # An prometheus output that does nothing.
 class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
   config_name "prometheus"
-  concurrency :single
+  concurrency :shared
 
   config :port, :validate => :number, :default => 9640
 
@@ -48,75 +46,96 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
 		# 		description => "This is my summary"
 		# 		value => "%{[timer]}"
 		# 		type => "summary"
-		# 		quantiles => [0.5, 0.9, 0.99]
 		# 	}
 		# }
   config :timer, :validate => :hash, :default => {}
 
   public
   def register
-  	if $prom_server.nil?
-  	  $prom_server = PrometheusExporter::Server::WebServer.new port: @port
-	  $prom_server.start
+  	# $prom_servers is a hash of registries with the port as the key
+  	$prom_servers ||= {}
+  	$metrics ||= {}
 
-	  $metrics = {}
+  	if $prom_servers[@port].nil?
+  	  $prom_servers[@port] = Prometheus::Client::Registry.new
+  	  prom_server = $prom_servers[@port]
+
+  	  app =
+      Rack::Builder.new(@port) do
+        use ::Rack::Deflater
+        use ::Prometheus::Middleware::Exporter, registry: prom_server
+
+        run ->(_) { [200, {'Content-Type' => 'text/html'}, ['Please access /metrics to see exposed metrics for this Logstash instance.']] }
+      end.to_app
+
+      Thread.new do
+		Rack::Handler::WEBrick.run(app, Port: @port, BindAddress: "0.0.0.0", Host: "0.0.0.0")
+	  end
 	end
 
-	@increment.each do |metric_name, val|
-		if val['type'] == "gauge"
-			metric = PrometheusExporter::Metric::Gauge.new(metric_name, val['description'])
-		else
-			metric = PrometheusExporter::Metric::Counter.new(metric_name, val['description'])
-		end
-		$prom_server.collector.register_metric(metric)
-		$metrics[metric_name] = metric
+	prom_server = $prom_servers[@port]
 
+	@increment.each do |metric_name, val|
 		if val['labels'].nil?
 			val['labels'] = {}
 		end
+
+		val['labels'].keys.each do |key|
+		  val['labels'][(key.to_sym rescue key) || key] = val['labels'].delete(key)
+		end
+
+		if val['type'] == "gauge"
+			metric = prom_server.gauge(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys)
+		else
+			metric = prom_server.counter(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys)
+		end
+		$metrics[metric_name] = metric
 	end
 
 	@decrement.each do |metric_name, val|
-		if val['type'] == "gauge"
-			metric = PrometheusExporter::Metric::Gauge.new(metric_name, val['description'])
-		else
-			metric = PrometheusExporter::Metric::Counter.new(metric_name, val['description'])
-		end
-		$prom_server.collector.register_metric(metric)
-		$metrics[metric_name] = metric
-
 		if val['labels'].nil?
 			val['labels'] = {}
 		end
+
+		val['labels'].keys.each do |key|
+		  val['labels'][(key.to_sym rescue key) || key] = val['labels'].delete(key)
+		end
+
+		metric = prom_server.gauge(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys)
+
+		$metrics[metric_name] = metric
 	end
 
 	@set.each do |metric_name, val|
-		metric = PrometheusExporter::Metric::Gauge.new(metric_name, val['description'])
-
-		$prom_server.collector.register_metric(metric)
-		$metrics[metric_name] = metric
-
 		if val['labels'].nil?
 			val['labels'] = {}
 		end
+
+		val['labels'].keys.each do |key|
+		  val['labels'][(key.to_sym rescue key) || key] = val['labels'].delete(key)
+		end
+
+		metric = prom_server.gauge(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys)
+
+		$metrics[metric_name] = metric
 	end
 
 	@timer.each do |metric_name, val|
-		if val['type'] == "histogram"
-			metric = PrometheusExporter::Metric::Histogram.new(metric_name, val['description'], buckets: val['buckets'])
-		else
-			if val['quantiles'].nil?
-				val['quantiles'] = [0.99, 0.9, 0.5]
-			end
-			metric = PrometheusExporter::Metric::Summary.new(metric_name, val['description'], quantiles: val['quantiles'])
-		end
-
-		$prom_server.collector.register_metric(metric)
-		$metrics[metric_name] = metric
-
 		if val['labels'].nil?
 			val['labels'] = {}
 		end
+
+		val['labels'].keys.each do |key|
+		  val['labels'][(key.to_sym rescue key) || key] = val['labels'].delete(key)
+		end
+
+		if val['type'] == "histogram"
+			metric = prom_server.histogram(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys, buckets: val['buckets'])
+		else
+			metric = prom_server.summary(metric_name.to_sym, labels: val['labels'].keys, docstring: val['description'])
+		end
+
+		$metrics[metric_name] = metric
 	end
   end # def register
 
@@ -127,7 +146,7 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
       val['labels'].each do |label, lval|
       	labels[label] = event.sprintf(lval)
       end
-      $metrics[metric_name].increment(labels)
+      $metrics[metric_name].increment(labels: labels)
     end
 
     @decrement.each do |metric_name, val|
@@ -135,7 +154,7 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
       val['labels'].each do |label, lval|
       	labels[label] = event.sprintf(lval)
       end
-      $metrics[metric_name].decrement(labels)
+      $metrics[metric_name].decrement(labels: labels)
     end
 
     @set.each do |metric_name, val|
@@ -143,7 +162,7 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
       val['labels'].each do |label, lval|
       	labels[label] = event.sprintf(lval)
       end
-      $metrics[metric_name].set(event.sprintf(val['value']),labels)
+      $metrics[metric_name].set(event.sprintf(val['value']).to_f,labels: labels)
     end
 
     @timer.each do |metric_name, val|
@@ -151,7 +170,7 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
       val['labels'].each do |label, lval|
       	labels[label] = event.sprintf(lval)
       end
-      $metrics[metric_name].observe(event.sprintf(val['value']),labels)
+      $metrics[metric_name].observe(event.sprintf(val['value']).to_f,labels: labels)
     end
   end # def event
 end # class LogStash::Outputs::Prometheus
