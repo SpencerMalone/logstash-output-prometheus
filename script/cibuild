@@ -3,5 +3,8 @@
 set -euo pipefail
 
 cd $(git rev-parse --show-toplevel)
+
+gem install bundler
+
 ./script/build
 ./script/test

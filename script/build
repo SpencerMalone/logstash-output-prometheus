@@ -4,7 +4,8 @@ set -euo pipefail
 
 cd $(git rev-parse --show-toplevel)
 
-bundle install
+bundle install --jobs 4 --retry 3
+
 gem build logstash-output-prometheus.gemspec
 
 echo "Successfully built! Install in your logstash by running..."
