@@ -10,7 +10,7 @@ on:
     - master
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     container:
       image: jruby:9.2.8
@@ -22,3 +22,41 @@ jobs:
         apt-get install -y --no-install-recommends git
     - name: Install deps and run RSpec
       run: script/cibuild
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: gem
+        path: logstash-output-prometheus-0.1.0.gem
+  end-to-end:
+    needs: build-test
+    runs-on: ubuntu-latest
+    container:
+      image: docker.elastic.co/logstash/logstash:7.3.0
+    steps:
+    - name: Download gem
+      uses: actions/download-artifact@v1
+      with:
+        name: gem
+    - name: Install plugin
+      run: logstash-plugin install --no-verify logstash-output-prometheus-0.1.0.gem
+    - name: Test Plugin
+      run: |
+        echo "hi" > /event.test
+        /usr/local/bin/docker-entrypoint -e 'input{
+              file{
+                  path => ["/event.test"]
+                  mode => "read"
+              }
+          }
+          output {
+            prometheus {
+              increment => {
+                mycounter => {
+                  description => "This is my test counter"
+                  labels => {
+                    value => "%{[message]}" 
+                  }
+                  type => "counter"
+                }
+              }
+            }'
