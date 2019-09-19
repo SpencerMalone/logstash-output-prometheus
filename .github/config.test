@@ -1,0 +1,19 @@
+input{
+  file{
+    path => ["/event.test"]
+    mode => "read"
+  }
+}
+output {
+  prometheus {
+    increment => {
+      mycounter => {
+        description => "This is my test counter"
+        labels => {
+          value => "%{[message]}" 
+        }
+        type => "counter"
+      }
+    }
+  }
+}

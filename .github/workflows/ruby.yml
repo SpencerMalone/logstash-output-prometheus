@@ -1,4 +1,4 @@
-name: Ruby
+name: Integration Tests
 
 on:
   push:
@@ -30,33 +30,20 @@ jobs:
   end-to-end:
     needs: build-test
     runs-on: ubuntu-latest
-    container:
-      image: docker.elastic.co/logstash/logstash:7.3.0
     steps:
+    - uses: actions/checkout@v1
     - name: Download gem
       uses: actions/download-artifact@v1
       with:
         name: gem
-    - name: Install plugin
-      run: logstash-plugin install --no-verify logstash-output-prometheus-0.1.0.gem
+    - name: Build docker image
+      run: |
+        cp gem/*.gem .
+        docker build -f .github/Dockerfile -t logstash-output-prom:dev .
     - name: Test Plugin
       run: |
-        echo "hi" > /event.test
-        /usr/local/bin/docker-entrypoint -e 'input{
-              file{
-                  path => ["/event.test"]
-                  mode => "read"
-              }
-          }
-          output {
-            prometheus {
-              increment => {
-                mycounter => {
-                  description => "This is my test counter"
-                  labels => {
-                    value => "%{[message]}" 
-                  }
-                  type => "counter"
-                }
-              }
-            }'
+        docker run -d -p 9640:9640 logstash-output-prom:dev -f /config.test
+        sleep 30
+        curl localhost:9640/metrics > output
+        cat output
+        cat output | grep 'mycounter{value="hi"} 1.0'

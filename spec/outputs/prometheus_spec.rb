@@ -57,12 +57,15 @@ describe LogStash::Outputs::Prometheus do
         "increment" => { 
           "basic_counter" => { 
             "description" => "Test",
+            "labels" => {
+              "mylabel" => "hi" 
+            }
           }
         }
       }
     }
 
-    include_examples "it should expose data", "basic_counter 1.0", "# TYPE basic_counter counter", "# HELP basic_counter Test"
+    include_examples "it should expose data", 'basic_counter{mylabel="hi"} 1', "# TYPE basic_counter counter", "# HELP basic_counter Test"
   end
 
   describe "gauge behavior" do

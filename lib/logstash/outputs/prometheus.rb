@@ -108,28 +108,28 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
   public
   def receive(event)
     @increment.each do |metric_name, val|
-      labels = setup_event_labels(val)
+      labels = setup_event_labels(val, event)
       $metrics[port.to_s + metric_name].increment(labels: labels)
     end
 
     @decrement.each do |metric_name, val|
-      labels = setup_event_labels(val)
+      labels = setup_event_labels(val, event)
       $metrics[port.to_s + metric_name].decrement(labels: labels)
     end
 
     @set.each do |metric_name, val|
-      labels = setup_event_labels(val)
+      labels = setup_event_labels(val, event)
       $metrics[port.to_s + metric_name].set(event.sprintf(val['value']).to_f,labels: labels)
     end
 
     @timer.each do |metric_name, val|
-      labels = setup_event_labels(val)
+      labels = setup_event_labels(val, event)
       $metrics[port.to_s + metric_name].observe(event.sprintf(val['value']).to_f,labels: labels)
     end
   end # def event
 
   protected
-  def setup_event_labels(val)
+  def setup_event_labels(val, event)
     labels = {}
     val['labels'].each do |label, lval|
       labels[label] = event.sprintf(lval)
