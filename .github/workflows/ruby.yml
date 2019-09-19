@@ -1,0 +1,26 @@
+name: Ruby
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: jruby-9.2.5.0
+    - name: Build and test
+      run: |
+        gem install bundler
+        ./script/cibuild
