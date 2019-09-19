@@ -11,11 +11,14 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-  container:
-    image: jruby:9.2.8
+    container:
+      image: jruby:9.2.8
     steps:
     - uses: actions/checkout@v1
+    - name: Install git
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends git
     - name: Install deps and run RSpec
-      run: ./script/cibuild
+      run: script/cibuild
