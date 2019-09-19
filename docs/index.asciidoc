@@ -1,4 +1,4 @@
-:plugin: example
+:plugin: prometheus
 :type: output
 :default_codec: plain
 // Update header with plugin name and default codec
@@ -16,17 +16,18 @@ END - GENERATED VARIABLES, DO NOT EDIT!
 
 [id="plugins-{type}s-{plugin}"]
 
-=== Example output plugin
+=== Prometheus output plugin
 
 include::{include_path}/plugin_header.asciidoc[]
 
 ==== Description
 
-Add plugin description here
+This logstash output plugin exposes an endpoint for https://prometheus.io/[Prometheus] to scrape.
 
-// Format anchors and links to support generated ids for versioning
-// Sample anchor: [id="plugins-{type}s-{plugin}-setting_name"]
-// Sample link: <<plugins-{type}s-{plugin}-setting_name>>
+Use cases include but are not limited to:
+* Monitoring the time it takes for your logging pipeline to reach logstash
+* Reusing your logging pipeline for exposing metrics
+* Tracking the health of your data
 
 [id="plugins-{type}s-{plugin}-options"]
 ==== Example Output Configuration Options
@@ -34,89 +35,145 @@ Add plugin description here
 [cols="<,<,<",options="header",]
 |=======================================================================
 |Setting |Input type|Required
-| <<plugins-{type}s-{plugin}-a_setting_name>> |<<boolean,boolean>>|No
-| <<plugins-{type}s-{plugin}-another_setting_name>> |<<hash,hash>>|No
-| <<plugins-{type}s-{plugin}-setting_name_3>> |<<string,string>>|No
-| <<plugins-{type}s-{plugin}-setting_name_4>> |<<number,number>>|No
-| <<plugins-{type}s-{plugin}-setting_name_5>> |<<array,array>>|No
-| <<plugins-{type}s-{plugin}-setting_name_6>> |<<bytes,bytes>>|No
-| <<plugins-{type}s-{plugin}-setting_name_7>> |<<path,path>>|No
-| <<plugins-{type}s-{plugin}-setting_name_8>> |<<password,password>>|No
-| <<plugins-{type}s-{plugin}-setting_name_9>> |<<uri,uri>>|No
+| <<plugins-{type}s-{plugin}-decrement>> |<<hash>>|No
+| <<plugins-{type}s-{plugin}-increment>> |<<hash>>|No
+| <<plugins-{type}s-{plugin}-port>> |<<numer>>|No
+| <<plugins-{type}s-{plugin}-set>> |<<hash>>|No
+| <<plugins-{type}s-{plugin}-timer>> |<<hash>>|No
 |=======================================================================
 
-[id="plugins-{type}s-{plugin}-a_setting_name"]
-===== `a_setting_name` 
+[id="plugins-{type}s-{plugin}-decrement"]
+===== `decrement` 
 
-  * Value type is <<boolean,boolean>>
-  * Default value is `true`
-
-Add description here
-
-[id="plugins-{type}s-{plugin}-another_setting_name"]
-===== `another_setting_name` 
-
-  * Value type is <<hash,hash>>
+  * Value type is <<hash>>
   * Default value is `{}`
 
-Add description here
+Decrement can be used to decrement a gauge. No other types are supported.
 
-[id="plugins-{type}s-{plugin}-setting_name_3"]
-===== `setting_name_3` 
+Example:
+[source,ruby]
+----------------------------------
+decrement => {
+    negaevents_total => {
+        description => "This is my test gauge"
+        labels => {
+            mylabel => "%{[message]}" 
+        }
+    }
+}
+----------------------------------
 
-  * Value type is <<string,string>>
+[id="plugins-{type}s-{plugin}-increment"]
+===== `increment` 
+
+  * Value type is <<hash>>
+  * Default value is `{}`
+  * Default type of metric is a `counter`
+
+Increment either a gauge or a counter.
+
+Example of a `counter`:
+[source,ruby]
+----------------------------------
+increment => {
+    events_count => {
+        description => "This is my test gauge"
+        labels => {
+            mylabel => "%{[message]}" 
+        }
+    }
+}
+----------------------------------
+
+Example of a `gauge`:
+[source,ruby]
+----------------------------------
+increment => {
+    events_total => {
+        description => "This is my test gauge"
+        labels => {
+            mylabel => "%{[message]}" 
+        }
+        type => "gauge"
+    }
+}
+----------------------------------
+
+[id="plugins-{type}s-{plugin}-port"]
+===== `port` 
+
+  * Value type is <<number>>
+  * Default value is `9640`
+
+The port that will be used when exposing a metric name.
+With a default port of 9640, Prometheus should be scraping from `https://<yourlogstash>:9640/metrics`
+
+[id="plugins-{type}s-{plugin}-set"]
+===== `set`
+
+  * Value type is <<hash>>
   * Default value is `{}`
 
-Add description here
+Set can be used to set a gauge to a specific value. No other types are supported.
 
-[id="plugins-{type}s-{plugin}-setting_name_4"]
-===== `setting_name_4` 
+Example:
+[source,ruby]
+----------------------------------
+set => {
+    events_total => {
+        description => "This is my test gauge"
+        labels => {
+            mylabel => "%{[message]}" 
+        }
+        value => "123"
+    }
+}
+----------------------------------
 
-  * Value type is <<number,number>>
-  * Default value is `0`
+[id="plugins-{type}s-{plugin}-timer"]
+===== `timer` 
 
-Add description here
+  * Value type is <<hash>>
+  * Default value is `{}`
+  * Default type of metric is a `summary`
 
-[id="plugins-{type}s-{plugin}-setting_name_5"]
-===== `setting_name_5` 
+Observe timing data for a histogram or summary.
+Histograms are recommended, but require setting the `buckets`
+Summaries will only expose a sum and count, quantile summaries are not supported.
+Read https://prometheus.io/docs/practices/histograms/[best practices for summaries and histograms] for more information.
 
-  * Value type is <<array,array>>
-  * Default value is {}
+Example of a `histogram`:
+[source,ruby]
+----------------------------------
+histogramtest => {
+  description => "This is my histogram"
+  value => "%{[timer]}"
+  labels => {
+    mylabel => "%{[message]}" 
+  }
+  type => "histogram"
+  buckets => [0.1, 1, 5, 10]
+}
+----------------------------------
 
-Add description here
+Example of a `summary`:
+[source,ruby]
+----------------------------------
+summarytest => {
+  description => "This is my summary"
+  value => "%{[timer]}"
+  labels => {
+    mylabel => "%{[message]}" 
+  }
+}
+----------------------------------
 
-[id="plugins-{type}s-{plugin}-setting_name_6"]
-===== `setting_name_6` 
+[id="plugins-{type}s-{plugin}-further-reading"]
 
-  * Value type is <<bytes,bytes>>
-  * Default value is {}
+==== Best Practices & Further Reading
 
-Add description here
-
-[id="plugins-{type}s-{plugin}-setting_name_7"]
-===== `setting_name_7` 
-
-  * Value type is <<path,path>>
-  * Default value is {}
-
-Add description here
-
-[id="plugins-{type}s-{plugin}-setting_name_8"]
-===== `setting_name_8` 
-
-  * Value type is <<password,password>>
-  * Default value is {}
-
-Add description here
-
-
-[id="plugins-{type}s-{plugin}-setting_name_9"]
-===== `setting_name_9` 
-
-  * Value type is <<uri,uri>>
-  * Default value is {}
-
-Add description here
+https://www.robustperception.io/how-should-pipelines-be-monitored
+https://www.robustperception.io/putting-queues-in-front-of-prometheus-for-reliability
 
 // The full list of Value Types is here: 
 // https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html
