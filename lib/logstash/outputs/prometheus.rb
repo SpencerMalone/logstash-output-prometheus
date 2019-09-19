@@ -12,69 +12,11 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
 
   config :port, :validate => :number, :default => 9640
 
-  # When working with gauges or counters, specify one of the following three hash objects
-  # By default, when increment is used a counter is assumed
-  # Decrement and set are available only for gauges
-  # The hashes generally look like this:
-  # [source,ruby]
-  # ----------------------------------
-  # increment => {
-  #     events_count => {
-  #         description => "This is my test counter"
-  #         labels => {
-  #             mylabel => "%{[message]}" 
-  #         }
-  #         type => "counter"
-  #     }
-  # }
-  # decrement => {
-  #     negaevents_total => {
-  #         description => "This is my test counter"
-  #         labels => {
-  #             mylabel => "%{[message]}" 
-  #         }
-  #         type => "counter"
-  #     }
-  # }
-  # set => {
-  #     onetwothree_current => {
-  #         description => "This is my test counter"
-  #         labels => {
-  #             mylabel => "%{[message]}" 
-  #         }
-  #         value => 123
-  #         type => "counter"
-  #     }
-  # }
-  # ----------------------------------
   config :increment, :validate => :hash, :default => {}
   # Decrement is only available for gauges
   config :decrement, :validate => :hash, :default => {}
   # Decrement is only available for gauges
   config :set, :validate => :hash, :default => {}
-
-  # This creates a summary or histogram
-  # Example hashes:
-  # [source,ruby]
-  # ----------------------------------
-  # timer => {
-  #     histogramtest => {
-  #         description => "This is my histogram"
-  #         value => "%{[timer]}"
-  #         labels => {
-  #             value => "%{[message]}" 
-  #         }
-  #         type => "histogram"
-  #         buckets => [0.1, 1, 5, 10]
-  #     }
-  #     summarytest => {
-  #         description => "This is my summary"
-  #         value => "%{[timer]}"
-  #         type => "summary"
-  #     }
-  # }
-  # ----------------------------------
-  # Something to note: due to implementation details of https://github.com/prometheus/client_ruby, summaries only contain the count and sum, and will not track any quantiles.
 
   config :timer, :validate => :hash, :default => {}
 
