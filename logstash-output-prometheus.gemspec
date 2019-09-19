@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "logstash-core-plugin-api", "~> 2.0"
   s.add_runtime_dependency "logstash-codec-plain"
   s.add_runtime_dependency "prometheus-client", "0.10.0.pre.alpha.2"
-  s.add_runtime_dependency "rack"
+  s.add_runtime_dependency "rack", ">= 1.6.11"
 
-  s.add_development_dependency "logstash-devutils"
+  s.add_development_dependency "logstash-devutils", "~> 1.3", ">= 1.3.1"
 end
