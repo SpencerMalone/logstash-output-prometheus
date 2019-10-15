@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
   s.name          = 'logstash-output-prometheus'
-  s.version       = '0.1.0'
+  s.version       = '0.1.1'
   s.licenses      = ['Apache-2.0']
   s.summary       = 'Output logstash data to a prometheus exporter'
 #  s.homepage      = 'Nada'
   s.authors       = ['Spencer Malone']
-  s.email         = 'smalone@rsglab.com'
+  s.email         = 'spencer@mailchimp.com'
   s.require_paths = ['lib']
 
   # Files

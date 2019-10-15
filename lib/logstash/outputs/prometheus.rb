@@ -77,13 +77,15 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
     @timer.each do |metric_name, val|
       val = setup_registry_labels(val)
 
-      if val['type'] == "histogram"
-        metric = prom_server.histogram(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys, buckets: val['buckets'])
-      else
-        metric = prom_server.summary(metric_name.to_sym, labels: val['labels'].keys, docstring: val['description'])
-      end
+      if $metrics[port.to_s + metric_name].nil?
+        if val['type'] == "histogram"
+          metric = prom_server.histogram(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys, buckets: val['buckets'])
+        else
+          metric = prom_server.summary(metric_name.to_sym, labels: val['labels'].keys, docstring: val['description'])
+        end
 
-      $metrics[port.to_s + metric_name] = metric
+        $metrics[port.to_s + metric_name] = metric
+      end
     end
   end # def register
 

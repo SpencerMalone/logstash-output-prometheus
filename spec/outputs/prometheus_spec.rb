@@ -8,13 +8,21 @@ require 'net/http'
 describe LogStash::Outputs::Prometheus do
   let(:port) { rand(2000..10000) }
   let(:output) { LogStash::Outputs::Prometheus.new(properties) }
+  let(:secondary_output) { 
+    if secondary_properties.nil?
+      LogStash::Outputs::Prometheus.new(properties)
+    else
+      LogStash::Outputs::Prometheus.new(secondary_properties)
+    end
+  }
 
   before do
     output.register
+    secondary_output.register
   end
 
-  after do
-    output.kill_thread
+  let(:secondary_properties) do
+    nil
   end
 
   let(:event) do
@@ -23,8 +31,47 @@ describe LogStash::Outputs::Prometheus do
     )
   end
 
+  let(:secondary_event) do
+    if secondary_properties.nil?
+      LogStash::Event.new(
+        secondary_properties
+      )
+    else
+      event
+    end
+  end
+
   shared_examples "it should expose data" do |*values|
     it "should expose data" do
+      output.receive(event)
+
+      url = URI.parse("http://localhost:#{port}/metrics")
+      req = Net::HTTP::Get.new(url.to_s)
+
+      attempts = 0
+
+      begin
+        res = Net::HTTP.start(url.host, url.port) {|http|
+            http.request(req)
+        }
+      rescue
+        attempts++
+        sleep(0.1)
+        if attempts < 10
+          retry
+        end
+      end
+
+      values.each do |value|
+        expect(res.body).to include(value)
+      end
+    end
+  end
+
+  shared_examples "it should expose data from multiple outputs" do |*values|
+    it "should be able to handle unique labels under the same name" do
+      secondary_output.receive(secondary_event)
+
       output.receive(event)
 
       url = URI.parse("http://localhost:#{port}/metrics")
@@ -65,7 +112,23 @@ describe LogStash::Outputs::Prometheus do
       }
     }
 
+    let(:secondary_properties) {
+      { 
+        "port" => port,
+        "increment" => { 
+          "basic_counter" => { 
+            "description" => "Test",
+            "labels" => {
+              "mylabel" => "boo" 
+            }
+          }
+        }
+      }
+    }
+
     include_examples "it should expose data", 'basic_counter{mylabel="hi"} 1', "# TYPE basic_counter counter", "# HELP basic_counter Test"
+    include_examples "it should expose data from multiple outputs", 'basic_counter{mylabel="hi"} 1', 'basic_counter{mylabel="boo"} 1'
+
   end
 
   describe "gauge behavior" do
@@ -76,12 +139,32 @@ describe LogStash::Outputs::Prometheus do
           "increment" => { 
             "basic_gauge" => { 
               "description" => "Test1",
+              "labels" => {
+                "mylabel" => "hi" 
+              },
               "type" => "gauge"
             }
           }
         }
       }
-      include_examples "it should expose data", "basic_gauge 1.0", "# TYPE basic_gauge gauge", "# HELP basic_gauge Test1"
+
+      let(:secondary_properties) {
+        { 
+          "port" => port,
+          "increment" => { 
+            "basic_gauge" => { 
+              "description" => "Test1",
+              "type" => "gauge",
+              "labels" => {
+                "mylabel" => "boo" 
+              }
+            }
+          }
+        }
+      }
+
+      include_examples "it should expose data", 'basic_gauge{mylabel="hi"} 1.0', "# TYPE basic_gauge gauge", "# HELP basic_gauge Test1"
+      include_examples "it should expose data from multiple outputs", 'basic_gauge{mylabel="hi"} 1', 'basic_gauge{mylabel="boo"} 1'
     end
 
     describe "decrement" do
@@ -124,12 +207,32 @@ describe LogStash::Outputs::Prometheus do
           "huh" => { 
             "description" => "noway",
             "type" => "summary",
-            "value" => "11"
+            "value" => "11",
+            "labels" => {
+              "mylabel" => "hi" 
+            }
           }
         }
       }
     }
-    include_examples "it should expose data", "huh_sum 11.0", "huh_count 1.0", "# TYPE huh summary", "# HELP huh noway"
+
+    let(:secondary_properties) {
+      { 
+        "port" => port,
+        "timer" => { 
+          "huh" => { 
+            "description" => "noway",
+            "type" => "summary",
+            "value" => "10",
+            "labels" => {
+              "mylabel" => "boo" 
+            }
+          }
+        }
+      }
+    }
+    include_examples "it should expose data", 'huh_sum{mylabel="hi"} 11.0', 'huh_count{mylabel="hi"} 1.0', "# TYPE huh summary", "# HELP huh noway"
+    include_examples "it should expose data from multiple outputs", 'huh_sum{mylabel="hi"} 11.0', 'huh_sum{mylabel="boo"} 10.0'
   end
 
   describe "histogram behavior" do
@@ -142,12 +245,32 @@ describe LogStash::Outputs::Prometheus do
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
-              "value" => "0"
+              "value" => "0",
+              "labels" => {
+                "mylabel" => "hi" 
+              }
+            }
+          }
+        }
+      }
+      let(:secondary_properties) {
+        { 
+          "port" => port,
+          "timer" => { 
+            "history" => { 
+              "description" => "abe",
+              "type" => "histogram",
+              "buckets" => [1, 5, 10],
+              "value" => "0",
+              "labels" => {
+                "mylabel" => "boo" 
+              }
             }
           }
         }
       }
       include_examples "it should expose data", "# TYPE history histogram", "# HELP history abe"
+      include_examples "it should expose data from multiple outputs", 'history_sum{mylabel="hi"} 0.0', 'history_sum{mylabel="boo"} 0.0'
     end
 
     describe "sum and count" do
