@@ -97,4 +97,6 @@ output {
 
 ## Things to keep in mind
 
-As outlined in 
+As outlined in https://www.robustperception.io/putting-queues-in-front-of-prometheus-for-reliability, putting a queue in front of Prometheus can have negative effects. When doing this, please ensure you are monitoring the time it takes events to pass through your queue.
+
+This is currently a beta plugin, and does not yet have official logstash adoption. One of the big things holding us back is that `prometheus-client` over at https://github.com/prometheus/client_ruby is still in alpha.
