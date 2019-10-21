@@ -26,7 +26,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: gem
-        path: logstash-output-prometheus-0.1.0.gem
+        path: logstash-output-prometheus-0.1.2.gem
   end-to-end:
     needs: build-test
     runs-on: ubuntu-latest

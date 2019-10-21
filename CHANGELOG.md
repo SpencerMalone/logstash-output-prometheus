@@ -1,3 +1,5 @@
+## 0.1.2
+  - Set to be a single threaded plugin while investigation into deadlocks occurs.
 ## 0.1.1
   - Fixed bug with unique labels under the same metric name for timers
 ## 0.1.0
