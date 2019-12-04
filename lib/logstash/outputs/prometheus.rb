@@ -8,7 +8,7 @@ require 'prometheus/client'
 # An prometheus output that does nothing.
 class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
   config_name "prometheus"
-  concurrency :single
+  concurrency :shared
 
   config :port, :validate => :number, :default => 9640
 
