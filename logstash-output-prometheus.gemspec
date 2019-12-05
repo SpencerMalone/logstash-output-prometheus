@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name          = 'logstash-output-prometheus'
-  s.version       = '0.1.2'
+  s.version       = '0.1.3'
   s.licenses      = ['Apache-2.0']
   s.summary       = 'Output logstash data to a prometheus exporter'
 #  s.homepage      = 'Nada'
@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   # Gem dependencies
   s.add_runtime_dependency "logstash-core-plugin-api", "~> 2.0"
   s.add_runtime_dependency "logstash-codec-plain"
-  s.add_runtime_dependency "prometheus-client", "0.10.0.pre.alpha.2"
+  s.add_runtime_dependency "prometheus-client", "1.0.0"
   s.add_runtime_dependency "rack", ">= 1.6.11"
 
   s.add_development_dependency "logstash-devutils", "~> 1.3", ">= 1.3.1"
