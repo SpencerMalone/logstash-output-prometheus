@@ -12,6 +12,8 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
 
   config :port, :validate => :number, :default => 9640
 
+  config :host, :validate => :string, :default => "0.0.0.0"
+
   config :increment, :validate => :hash, :default => {}
   # Decrement is only available for gauges
   config :decrement, :validate => :hash, :default => {}
@@ -38,7 +40,7 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
       end.to_app
 
       @thread = Thread.new do
-        Rack::Handler::WEBrick.run(app, Port: @port, BindAddress: "0.0.0.0", Host: "0.0.0.0")
+        Rack::Handler::WEBrick.run(app, Port: @port, Host: @host)
       end
     end
 
