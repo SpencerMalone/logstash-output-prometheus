@@ -108,6 +108,14 @@ increment => {
 The port that will be used when exposing a metric name.
 With a default port of 9640, Prometheus should be scraping from `https://<yourlogstash>:9640/metrics`
 
+[id="plugins-{type}s-{plugin}-host"]
+===== `host` 
+
+  * Value type is <<string>>
+  * Default value is `0.0.0.0`
+
+The host that will be used to listen.
+
 [id="plugins-{type}s-{plugin}-set"]
 ===== `set`
 

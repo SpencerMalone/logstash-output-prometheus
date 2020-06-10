@@ -7,6 +7,7 @@ require 'net/http'
 
 describe LogStash::Outputs::Prometheus do
   let(:port) { rand(2000..10000) }
+  let(:host) { "0.0.0.0" }
   let(:output) { LogStash::Outputs::Prometheus.new(properties) }
   let(:secondary_output) { 
     if secondary_properties.nil?
@@ -101,6 +102,7 @@ describe LogStash::Outputs::Prometheus do
     let(:properties) {
       { 
         "port" => port,
+        "host" => host,
         "increment" => { 
           "basic_counter" => { 
             "description" => "Test",
@@ -115,6 +117,7 @@ describe LogStash::Outputs::Prometheus do
     let(:secondary_properties) {
       { 
         "port" => port,
+        "host" => host,
         "increment" => { 
           "basic_counter" => { 
             "description" => "Test",
@@ -136,6 +139,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "increment" => { 
             "basic_gauge" => { 
               "description" => "Test1",
@@ -151,6 +155,7 @@ describe LogStash::Outputs::Prometheus do
       let(:secondary_properties) {
         { 
           "port" => port,
+          "host" => host,
           "increment" => { 
             "basic_gauge" => { 
               "description" => "Test1",
@@ -171,6 +176,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "decrement" => { 
             "basic_gauge" => { 
               "description" => "Testone",
@@ -186,6 +192,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "set" => { 
             "basic_gauge" => { 
               "description" => "Testone",
@@ -203,6 +210,7 @@ describe LogStash::Outputs::Prometheus do
     let(:properties) {
       { 
         "port" => port,
+        "host" => host,
         "timer" => { 
           "huh" => { 
             "description" => "noway",
@@ -219,6 +227,7 @@ describe LogStash::Outputs::Prometheus do
     let(:secondary_properties) {
       { 
         "port" => port,
+        "host" => host,
         "timer" => { 
           "huh" => { 
             "description" => "noway",
@@ -240,6 +249,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "timer" => { 
             "history" => { 
               "description" => "abe",
@@ -256,6 +266,7 @@ describe LogStash::Outputs::Prometheus do
       let(:secondary_properties) {
         { 
           "port" => port,
+          "host" => host,
           "timer" => { 
             "history" => { 
               "description" => "abe",
@@ -277,6 +288,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "timer" => { 
             "history" => { 
               "description" => "abe",
@@ -294,6 +306,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "timer" => { 
             "history" => { 
               "description" => "abe",
@@ -311,6 +324,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "timer" => { 
             "history" => { 
               "description" => "abe",
@@ -328,6 +342,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "timer" => { 
             "history" => { 
               "description" => "abe",
@@ -345,6 +360,7 @@ describe LogStash::Outputs::Prometheus do
       let(:properties) {
         { 
           "port" => port,
+          "host" => host,
           "timer" => { 
             "history" => { 
               "description" => "abe",
