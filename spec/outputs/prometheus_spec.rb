@@ -9,7 +9,7 @@ describe LogStash::Outputs::Prometheus do
   let(:port) { rand(2000..10000) }
   let(:host) { "0.0.0.0" }
   let(:output) { LogStash::Outputs::Prometheus.new(properties) }
-  let(:secondary_output) { 
+  let(:secondary_output) {
     if secondary_properties.nil?
       LogStash::Outputs::Prometheus.new(properties)
     else
@@ -100,14 +100,15 @@ describe LogStash::Outputs::Prometheus do
 
   describe "counter behavior" do
     let(:properties) {
-      { 
+      {
         "port" => port,
         "host" => host,
-        "increment" => { 
-          "basic_counter" => { 
+        "increment" => {
+          "basic_counter" => {
             "description" => "Test",
+            "by" => "1",
             "labels" => {
-              "mylabel" => "hi" 
+              "mylabel" => "hi"
             }
           }
         }
@@ -115,14 +116,15 @@ describe LogStash::Outputs::Prometheus do
     }
 
     let(:secondary_properties) {
-      { 
+      {
         "port" => port,
         "host" => host,
-        "increment" => { 
-          "basic_counter" => { 
+        "increment" => {
+          "basic_counter" => {
             "description" => "Test",
+            "by" => "1",
             "labels" => {
-              "mylabel" => "boo" 
+              "mylabel" => "boo"
             }
           }
         }
@@ -137,14 +139,15 @@ describe LogStash::Outputs::Prometheus do
   describe "gauge behavior" do
     describe "increment" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "increment" => { 
-            "basic_gauge" => { 
+          "increment" => {
+            "basic_gauge" => {
               "description" => "Test1",
+              "by" => "1",
               "labels" => {
-                "mylabel" => "hi" 
+                "mylabel" => "hi"
               },
               "type" => "gauge"
             }
@@ -153,15 +156,16 @@ describe LogStash::Outputs::Prometheus do
       }
 
       let(:secondary_properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "increment" => { 
-            "basic_gauge" => { 
+          "increment" => {
+            "basic_gauge" => {
               "description" => "Test1",
+              "by" => "1",
               "type" => "gauge",
               "labels" => {
-                "mylabel" => "boo" 
+                "mylabel" => "boo"
               }
             }
           }
@@ -174,12 +178,13 @@ describe LogStash::Outputs::Prometheus do
 
     describe "decrement" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "decrement" => { 
-            "basic_gauge" => { 
+          "decrement" => {
+            "basic_gauge" => {
               "description" => "Testone",
+              "by" => "1",
               "type" => "gauge"
             }
           }
@@ -190,11 +195,11 @@ describe LogStash::Outputs::Prometheus do
 
     describe "set" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "set" => { 
-            "basic_gauge" => { 
+          "set" => {
+            "basic_gauge" => {
               "description" => "Testone",
               "type" => "gauge",
               "value" => "123"
@@ -208,16 +213,16 @@ describe LogStash::Outputs::Prometheus do
 
   describe "summary behavior" do
     let(:properties) {
-      { 
+      {
         "port" => port,
         "host" => host,
-        "timer" => { 
-          "huh" => { 
+        "timer" => {
+          "huh" => {
             "description" => "noway",
             "type" => "summary",
             "value" => "11",
             "labels" => {
-              "mylabel" => "hi" 
+              "mylabel" => "hi"
             }
           }
         }
@@ -225,16 +230,16 @@ describe LogStash::Outputs::Prometheus do
     }
 
     let(:secondary_properties) {
-      { 
+      {
         "port" => port,
         "host" => host,
-        "timer" => { 
-          "huh" => { 
+        "timer" => {
+          "huh" => {
             "description" => "noway",
             "type" => "summary",
             "value" => "10",
             "labels" => {
-              "mylabel" => "boo" 
+              "mylabel" => "boo"
             }
           }
         }
@@ -247,34 +252,34 @@ describe LogStash::Outputs::Prometheus do
   describe "histogram behavior" do
     describe "description" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "timer" => { 
-            "history" => { 
+          "timer" => {
+            "history" => {
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
               "value" => "0",
               "labels" => {
-                "mylabel" => "hi" 
+                "mylabel" => "hi"
               }
             }
           }
         }
       }
       let(:secondary_properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "timer" => { 
-            "history" => { 
+          "timer" => {
+            "history" => {
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
               "value" => "0",
               "labels" => {
-                "mylabel" => "boo" 
+                "mylabel" => "boo"
               }
             }
           }
@@ -286,11 +291,11 @@ describe LogStash::Outputs::Prometheus do
 
     describe "sum and count" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "timer" => { 
-            "history" => { 
+          "timer" => {
+            "history" => {
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
@@ -304,11 +309,11 @@ describe LogStash::Outputs::Prometheus do
 
     describe "minimum histogram" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "timer" => { 
-            "history" => { 
+          "timer" => {
+            "history" => {
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
@@ -322,11 +327,11 @@ describe LogStash::Outputs::Prometheus do
 
     describe "middle histogram" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "timer" => { 
-            "history" => { 
+          "timer" => {
+            "history" => {
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
@@ -340,11 +345,11 @@ describe LogStash::Outputs::Prometheus do
 
     describe "max histogram" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "timer" => { 
-            "history" => { 
+          "timer" => {
+            "history" => {
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
@@ -358,11 +363,11 @@ describe LogStash::Outputs::Prometheus do
 
     describe "beyond max histogram" do
       let(:properties) {
-        { 
+        {
           "port" => port,
           "host" => host,
-          "timer" => { 
-            "history" => { 
+          "timer" => {
+            "history" => {
               "description" => "abe",
               "type" => "histogram",
               "buckets" => [1, 5, 10],
