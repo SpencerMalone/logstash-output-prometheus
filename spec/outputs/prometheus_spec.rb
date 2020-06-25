@@ -99,41 +99,79 @@ describe LogStash::Outputs::Prometheus do
   end
 
   describe "counter behavior" do
-    let(:properties) {
-      {
-        "port" => port,
-        "host" => host,
-        "increment" => {
-          "basic_counter" => {
-            "description" => "Test",
-            "by" => "1",
-            "labels" => {
-              "mylabel" => "hi"
+    describe "default increment" do
+      let(:properties) {
+        {
+          "port" => port,
+          "host" => host,
+          "increment" => {
+            "basic_counter" => {
+              "description" => "Test",
+              "labels" => {
+                "mylabel" => "hi"
+              }
             }
           }
         }
       }
-    }
 
-    let(:secondary_properties) {
-      {
-        "port" => port,
-        "host" => host,
-        "increment" => {
-          "basic_counter" => {
-            "description" => "Test",
-            "by" => "1",
-            "labels" => {
-              "mylabel" => "boo"
+      let(:secondary_properties) {
+        {
+          "port" => port,
+          "host" => host,
+          "increment" => {
+            "basic_counter" => {
+              "description" => "Test",
+              "labels" => {
+                "mylabel" => "boo"
+              }
             }
           }
         }
       }
-    }
 
-    include_examples "it should expose data", 'basic_counter{mylabel="hi"} 1', "# TYPE basic_counter counter", "# HELP basic_counter Test"
-    include_examples "it should expose data from multiple outputs", 'basic_counter{mylabel="hi"} 1', 'basic_counter{mylabel="boo"} 1'
+      include_examples "it should expose data", 'basic_counter{mylabel="hi"} 1', "# TYPE basic_counter counter", "# HELP basic_counter Test"
+      include_examples "it should expose data from multiple outputs", 'basic_counter{mylabel="hi"} 1', 'basic_counter{mylabel="boo"} 1'
 
+    end
+
+    describe "custom increment by" do
+      let(:properties) {
+        {
+          "port" => port,
+          "host" => host,
+          "increment" => {
+            "basic_counter" => {
+              "description" => "Test",
+              "by" => "5",
+              "labels" => {
+                "mylabel" => "hi"
+              }
+            }
+          }
+        }
+      }
+
+      let(:secondary_properties) {
+        {
+          "port" => port,
+          "host" => host,
+          "increment" => {
+            "basic_counter" => {
+              "description" => "Test",
+              "by" => "10",
+              "labels" => {
+                "mylabel" => "boo"
+              }
+            }
+          }
+        }
+      }
+
+      include_examples "it should expose data", 'basic_counter{mylabel="hi"} 5', "# TYPE basic_counter counter", "# HELP basic_counter Test"
+      include_examples "it should expose data from multiple outputs", 'basic_counter{mylabel="hi"} 5', 'basic_counter{mylabel="boo"} 10'
+
+    end
   end
 
   describe "gauge behavior" do
@@ -145,7 +183,6 @@ describe LogStash::Outputs::Prometheus do
           "increment" => {
             "basic_gauge" => {
               "description" => "Test1",
-              "by" => "1",
               "labels" => {
                 "mylabel" => "hi"
               },
@@ -162,7 +199,6 @@ describe LogStash::Outputs::Prometheus do
           "increment" => {
             "basic_gauge" => {
               "description" => "Test1",
-              "by" => "1",
               "type" => "gauge",
               "labels" => {
                 "mylabel" => "boo"
@@ -175,6 +211,25 @@ describe LogStash::Outputs::Prometheus do
       include_examples "it should expose data", 'basic_gauge{mylabel="hi"} 1.0', "# TYPE basic_gauge gauge", "# HELP basic_gauge Test1"
       include_examples "it should expose data from multiple outputs", 'basic_gauge{mylabel="hi"} 1', 'basic_gauge{mylabel="boo"} 1'
     end
+    describe "increment with custom by" do
+      let(:properties) {
+        {
+          "port" => port,
+          "host" => host,
+          "increment" => {
+            "basic_gauge" => {
+              "description" => "Test1",
+              "by" => "5"
+              "labels" => {
+                "mylabel" => "hi"
+              },
+              "type" => "gauge"
+            }
+          }
+        }
+      }
+      include_examples "it should expose data", "basic_gauge 5.0", "# TYPE basic_gauge gauge", "# HELP basic_gauge Testone"
+    end
 
     describe "decrement" do
       let(:properties) {
@@ -184,13 +239,29 @@ describe LogStash::Outputs::Prometheus do
           "decrement" => {
             "basic_gauge" => {
               "description" => "Testone",
-              "by" => "1",
               "type" => "gauge"
             }
           }
         }
       }
       include_examples "it should expose data", "basic_gauge -1.0", "# TYPE basic_gauge gauge", "# HELP basic_gauge Testone"
+    end
+
+    describe "decrement with custom by" do
+      let(:properties) {
+        {
+          "port" => port,
+          "host" => host,
+          "decrement" => {
+            "basic_gauge" => {
+              "description" => "Testone",
+              "by" => "10",
+              "type" => "gauge"
+            }
+          }
+        }
+      }
+      include_examples "it should expose data", "basic_gauge -10.0", "# TYPE basic_gauge gauge", "# HELP basic_gauge Testone"
     end
 
     describe "set" do

@@ -43,10 +43,11 @@ Use cases include but are not limited to:
 |=======================================================================
 
 [id="plugins-{type}s-{plugin}-decrement"]
-===== `decrement` 
+===== `decrement`
 
   * Value type is <<hash>>
   * Default value is `{}`
+  * Default decrement by value is `1`
 
 Decrement can be used to decrement a gauge. No other types are supported.
 
@@ -57,18 +58,20 @@ decrement => {
     negaevents_total => {
         description => "This is my test gauge"
         labels => {
-            mylabel => "%{[message]}" 
+            mylabel => "%{[message]}"
         }
+        by => "1"
     }
 }
 ----------------------------------
 
 [id="plugins-{type}s-{plugin}-increment"]
-===== `increment` 
+===== `increment`
 
   * Value type is <<hash>>
   * Default value is `{}`
   * Default type of metric is a `counter`
+  * Default increment by value is `1`
 
 Increment either a gauge or a counter.
 
@@ -79,8 +82,9 @@ increment => {
     events_count => {
         description => "This is my test gauge"
         labels => {
-            mylabel => "%{[message]}" 
+            mylabel => "%{[message]}"
         }
+        by => "1"
     }
 }
 ----------------------------------
@@ -92,15 +96,16 @@ increment => {
     events_total => {
         description => "This is my test gauge"
         labels => {
-            mylabel => "%{[message]}" 
+            mylabel => "%{[message]}"
         }
+        by => "5"
         type => "gauge"
     }
 }
 ----------------------------------
 
 [id="plugins-{type}s-{plugin}-port"]
-===== `port` 
+===== `port`
 
   * Value type is <<number>>
   * Default value is `9640`
@@ -109,7 +114,7 @@ The port that will be used when exposing a metric name.
 With a default port of 9640, Prometheus should be scraping from `https://<yourlogstash>:9640/metrics`
 
 [id="plugins-{type}s-{plugin}-host"]
-===== `host` 
+===== `host`
 
   * Value type is <<string>>
   * Default value is `0.0.0.0`
@@ -131,7 +136,7 @@ set => {
     events_total => {
         description => "This is my test gauge"
         labels => {
-            mylabel => "%{[message]}" 
+            mylabel => "%{[message]}"
         }
         value => "123"
     }
@@ -139,7 +144,7 @@ set => {
 ----------------------------------
 
 [id="plugins-{type}s-{plugin}-timer"]
-===== `timer` 
+===== `timer`
 
   * Value type is <<hash>>
   * Default value is `{}`
@@ -157,7 +162,7 @@ histogramtest => {
   description => "This is my histogram"
   value => "%{[timer]}"
   labels => {
-    mylabel => "%{[message]}" 
+    mylabel => "%{[message]}"
   }
   type => "histogram"
   buckets => [0.1, 1, 5, 10]
@@ -171,7 +176,7 @@ summarytest => {
   description => "This is my summary"
   value => "%{[timer]}"
   labels => {
-    mylabel => "%{[message]}" 
+    mylabel => "%{[message]}"
   }
 }
 ----------------------------------
@@ -183,7 +188,7 @@ summarytest => {
 https://www.robustperception.io/how-should-pipelines-be-monitored
 https://www.robustperception.io/putting-queues-in-front-of-prometheus-for-reliability
 
-// The full list of Value Types is here: 
+// The full list of Value Types is here:
 // https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html
 
 [id="plugins-{type}s-{plugin}-common-options"]
