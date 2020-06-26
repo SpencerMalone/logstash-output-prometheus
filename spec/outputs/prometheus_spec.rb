@@ -219,16 +219,13 @@ describe LogStash::Outputs::Prometheus do
           "increment" => {
             "basic_gauge" => {
               "description" => "Test1",
-              "by" => "5"
-              "labels" => {
-                "mylabel" => "hi"
-              },
+              "by" => "5",
               "type" => "gauge"
             }
           }
         }
       }
-      include_examples "it should expose data", "basic_gauge 5.0", "# TYPE basic_gauge gauge", "# HELP basic_gauge Testone"
+      include_examples "it should expose data", "basic_gauge 5.0", "# TYPE basic_gauge gauge", "# HELP basic_gauge Test1"
     end
 
     describe "decrement" do
