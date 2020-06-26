@@ -80,7 +80,7 @@ output {
 				labels => {
 					value => "%{[message]}"
 				}
-				by => "1"}
+				by => "1"
 				type => "counter"
 			}
 		}
