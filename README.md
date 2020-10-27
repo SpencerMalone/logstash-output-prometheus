@@ -32,7 +32,7 @@ For more information about contributing, see the [CONTRIBUTING](https://github.c
 ## Examples
 
 ```
-logstash -e 'input { stdin { } } 
+logstash -e 'input { stdin { } }
 filter {
 	mutate {
 		add_field => {
@@ -52,7 +52,7 @@ output {
 				type => "histogram"
 				buckets => [0.1, 1, 5, 10]
 				labels => {
-					mylabel => "testlabel" 
+					mylabel => "testlabel"
 				}
 			}
 		}
@@ -71,15 +71,16 @@ output {
 ```
 
 ```
-logstash -e 'input { stdin { } } 
+logstash -e 'input { stdin { } }
 output {
 	prometheus {
 		increment => {
 			mycounter => {
 				description => "This is my test counter"
 				labels => {
-					value => "%{[message]}" 
+					value => "%{[message]}"
 				}
+				by => "1"
 				type => "counter"
 			}
 		}

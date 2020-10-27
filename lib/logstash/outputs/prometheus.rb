@@ -47,7 +47,7 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
     prom_server = $prom_servers[@port]
 
     @increment.each do |metric_name, val|
-    	val = setup_registry_labels(val)
+      val = setup_registry_labels(val)
       if $metrics[port.to_s + metric_name].nil?
         if val['type'] == "gauge"
           metric = prom_server.gauge(metric_name.to_sym, docstring: val['description'], labels: val['labels'].keys)
@@ -92,8 +92,8 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
   end # def register
 
   def kill_thread()
-  	@thread.kill
-  	$prom_servers[@port] = nil
+    @thread.kill
+    $prom_servers[@port] = nil
   end
 
   protected
@@ -106,19 +106,21 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
       val['labels'][(key.to_sym rescue key) || key] = val['labels'].delete(key)
     end
 
-    return val     
+    return val
   end
 
   public
   def receive(event)
     @increment.each do |metric_name, val|
       labels = setup_event_labels(val, event)
-      $metrics[port.to_s + metric_name].increment(labels: labels)
+      by = val["by"] ? event.sprintf(val["by"]).to_i : 1
+      $metrics[port.to_s + metric_name].increment(by: by, labels:labels)
     end
 
     @decrement.each do |metric_name, val|
       labels = setup_event_labels(val, event)
-      $metrics[port.to_s + metric_name].decrement(labels: labels)
+      by = val["by"] ? event.sprintf(val["by"]).to_i : 1
+      $metrics[port.to_s + metric_name].decrement(by: by, labels: labels)
     end
 
     @set.each do |metric_name, val|
@@ -139,6 +141,6 @@ class LogStash::Outputs::Prometheus < LogStash::Outputs::Base
       labels[label] = event.sprintf(lval)
     end
 
-    return labels     
+    return labels
   end
 end # class LogStash::Outputs::Prometheus
